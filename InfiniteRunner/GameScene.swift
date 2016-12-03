@@ -32,16 +32,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var blockTimer = Timer()
 
     override func didMove(to view: SKView) {
-        self.physicsWorld.contactDelegate = self
         
-        scoreLabel.text = "\(score)"
-        scoreLabel.position = CGPoint(x: self.size.width / 2, y: self.size.height)
+        self.physicsWorld.contactDelegate = self
         
         manager.startAccelerometerUpdates()
         manager.accelerometerUpdateInterval = 0.1
         manager.startAccelerometerUpdates(to: OperationQueue.main) {(data,error) in
             self.physicsWorld.gravity = CGVector(dx: CGFloat((data?.acceleration.x)!) * 10, dy: CGFloat((data?.acceleration.y)!) * 10)
         }
+        scoreLabel.text = "\(score)"
+        scoreLabel.fontSize = 65
+        scoreLabel.fontColor = UIColor.black
+        scoreLabel.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.2)
+        scoreLabel.zPosition = 2.0
+        self.addChild(scoreLabel)
+        
         let heroTexture = SKTexture(imageNamed: "hero")
         
         hero = SKSpriteNode(texture: heroTexture)
@@ -56,7 +61,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         hero.physicsBody?.categoryBitMask = CollisionNames.Hero
         hero.physicsBody?.contactTestBitMask = CollisionNames.Block
         hero.physicsBody?.collisionBitMask = CollisionNames.Block
-        self.addChild(scoreLabel)
         self.addChild(hero)
         
         let border  = SKPhysicsBody(edgeLoopFrom: self.frame)
@@ -93,22 +97,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let action = SKAction.moveTo(y: -1000, duration: 3 )
         let actionDone = SKAction.removeFromParent()
-        block.run(SKAction.sequence([action, actionDone]))
+        let incrementScore = SKAction.run ({
+            self.score += 1
+            self.scoreLabel.text = "\(self.score)"
+        })
+        
+        block.run(SKAction.sequence([action, actionDone, incrementScore]))
         
         self.addChild(block)
-        score += 1
         
     }
-
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-
         gameStarted = true
-        blockTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(GameScene.spawnBlocks), userInfo: nil, repeats: true)
+        if gameStarted == true {
+            blockTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(GameScene.spawnBlocks), userInfo: nil, repeats: true)
+        }
         
         for touch in touches {
             let location = touch.location(in: self)
             hero.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 70))
         }
+        
         
     }
     
@@ -117,10 +127,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             print("test")
             let bodyA = contact.bodyA
             let bodyB = contact.bodyB
-            if bodyA.node?.physicsBody?.categoryBitMask == CollisionNames.Hero && bodyB.node?.physicsBody?.categoryBitMask == CollisionNames.Block {
-                print("CONTACT")
-            } else if bodyA.node?.physicsBody?.categoryBitMask == CollisionNames.Block && bodyB.node?.physicsBody?.categoryBitMask == CollisionNames.Hero {
-                print("CONTACT")
+            if bodyA.node?.physicsBody?.categoryBitMask == CollisionNames.Hero && bodyB.node?.physicsBody?.categoryBitMask == CollisionNames.Block || bodyA.node?.physicsBody?.categoryBitMask == CollisionNames.Block && bodyB.node?.physicsBody?.categoryBitMask == CollisionNames.Hero {
+                
+                gameStarted = false
+                hero.removeFromParent()
+                
+                block.removeFromParent()
+                blockTimer.invalidate()
+
+                // Add highscore labels and retry button
+                scoreLabel.text = "Time Survived : \(score)"
+                scoreLabel.fontSize = 45
+                scoreLabel.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.7)
+                scoreLabel.run(SKAction.fadeIn(withDuration: 0.4))
+                scoreLabel.fontColor = UIColor.black
             }
         }
     }
