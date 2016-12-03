@@ -49,7 +49,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         manager.startAccelerometerUpdates()
         manager.accelerometerUpdateInterval = 0.1
         manager.startAccelerometerUpdates(to: OperationQueue.main) {(data,error) in
-            self.physicsWorld.gravity = CGVector(dx: CGFloat((data?.acceleration.x)!) * 10, dy: CGFloat((data?.acceleration.y)!) * 10)
+            self.physicsWorld.gravity = CGVector(dx: CGFloat((data?.acceleration.x)!) * 15, dy: CGFloat((data?.acceleration.y)!) * 15)
         }
         
         let highscoreDefault = UserDefaults.standard
@@ -106,7 +106,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let border  = SKPhysicsBody(edgeLoopFrom: self.frame)
         
-        border.friction = 0
+        border.friction = 40
         border.restitution = 1
         
         self.physicsBody = border
@@ -118,6 +118,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if gameStarted == true {
             let blockTexture = SKTexture(imageNamed: "Block.png")
             block = SKSpriteNode(texture: blockTexture)
+            block.size = CGSize(width: 50, height: 50)
             let minValue = self.size.width / 8
             let maxValue = self.size.height - 20
             let spawnPoint = UInt32(maxValue - minValue)
@@ -153,6 +154,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
             gameStarted = true
             
+            hero.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2 )
             self.addChild(hero)
             
             tapToStart.removeFromParent()
@@ -185,36 +187,41 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
             let bodyA = contact.bodyA
             let bodyB = contact.bodyB
+
             if bodyA.node?.physicsBody?.categoryBitMask == CollisionNames.Hero && bodyB.node?.physicsBody?.categoryBitMask == CollisionNames.Block || bodyA.node?.physicsBody?.categoryBitMask == CollisionNames.Block && bodyB.node?.physicsBody?.categoryBitMask == CollisionNames.Hero {
                 
-                gameStarted = false
-                spd = 1.0
-                hero.removeFromParent()
-                block.removeFromParent()
-                blockTimer.invalidate()
-                scoreTimer.invalidate()
-                
-                scoreLabel.text = "Time Survived : \(score)"
-                scoreLabel.fontSize = 45
-                scoreLabel.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.7)
-                scoreLabel.run(SKAction.fadeIn(withDuration: 0.4))
-                scoreLabel.fontColor = UIColor.black
-                
-                tapToStart.text = "Play Again"
-                tapToStart.run(SKAction.fadeIn(withDuration: 1.0))
-                tapToStart.run(SKAction.repeatForever(fadingAnimation))
-                self.addChild(tapToStart)
-                self.addChild(titleLabel)
-                self.addChild(highscoreLabel)
-            
-                if score > highscore {
-                    let highscoreDefault = UserDefaults.standard
-                    highscore = score
-                    highscoreDefault.set(highscore, forKey: "Highscore")
-                    highscoreLabel.text = "Highscore : \(highscore)"
-                }
+               gameOver()
                 
             }
+        }
+    }
+    
+    func gameOver() {
+        gameStarted = false
+        spd = 1.0
+        hero.removeFromParent()
+        block.removeFromParent()
+        blockTimer.invalidate()
+        scoreTimer.invalidate()
+        
+        scoreLabel.text = "Time Survived : \(score)"
+        scoreLabel.fontSize = 45
+        scoreLabel.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.7)
+        scoreLabel.run(SKAction.fadeIn(withDuration: 0.4))
+        scoreLabel.fontColor = UIColor.black
+        
+        tapToStart.text = "Play Again"
+        tapToStart.run(SKAction.fadeIn(withDuration: 1.0))
+        tapToStart.run(SKAction.repeatForever(fadingAnimation))
+        self.addChild(tapToStart)
+        self.addChild(titleLabel)
+        self.addChild(highscoreLabel)
+        
+        if score > highscore {
+            let highscoreDefault = UserDefaults.standard
+            highscore = score
+            highscoreDefault.set(highscore, forKey: "Highscore")
+            highscoreLabel.text = "Highscore : \(highscore)"
         }
     }
     
@@ -236,6 +243,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if score % 10 == 0 && spd > 0.5 {
             spd -= 0.2
         }
+        
+        //Make a 1 pixel sprite at the bottom (add collision)
+//        if hero.position.y == 0 {
+//            gameOver()
+//        }
+        
+        if (hero.physicsBody?.velocity.dy)! > CGFloat(300) {
+            hero.physicsBody?.velocity.dy = 200
+        }
+        
     }
     
 }
