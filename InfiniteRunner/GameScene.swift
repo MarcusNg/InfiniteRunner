@@ -40,7 +40,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let heroTexture = SKTexture(imageNamed: "hero")
         
         hero = SKSpriteNode(texture: heroTexture)
-        hero.position = CGPoint(x: 0, y: 0 )
+        hero.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2 )
         hero.name = "Hero"
         backgroundColor = UIColor.white
         hero.physicsBody = SKPhysicsBody(rectangleOf: hero.size)
@@ -70,8 +70,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let blockTexture = SKTexture(imageNamed: "Block.png")
         block = SKSpriteNode(texture: blockTexture)
-        let minValue = screenWidth / 8
-        let maxValue = screenWidth - 20
+        let minValue = self.size.width / 8
+        let maxValue = self.size.height - 20
         let spawnPoint = UInt32(maxValue - minValue)
         block.position = CGPoint(x: CGFloat(arc4random_uniform(spawnPoint)), y: self.size.height)
         //block.position = CGPoint(x: self.size.width / 20, y: self.size.height / 2)
@@ -85,7 +85,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         block.physicsBody?.collisionBitMask = CollisionNames.Hero
         block.physicsBody?.affectedByGravity = false
         
-        let action = SKAction.moveTo(y: -70, duration: 1.45 )
+        let action = SKAction.moveTo(y: -1000, duration: 3 )
         let actionDone = SKAction.removeFromParent()
         block.run(SKAction.sequence([action, actionDone]))
         
@@ -95,7 +95,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
 
-        blockTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(GameScene.spawnBlocks), userInfo: nil, repeats: true)
+        blockTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(GameScene.spawnBlocks), userInfo: nil, repeats: true)
         
         for touch in touches {
             let location = touch.location(in: self)
