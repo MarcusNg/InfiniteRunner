@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "InfiniteRunner/GameScene.swift"
-            timestampString = "502476240.23613"
+            timestampString = "502482536.010116"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "35"
-            endingLineNumber = "35"
+            startingLineNumber = "39"
+            endingLineNumber = "39"
             landmarkName = "didMove(to:)"
             landmarkType = "7">
          </BreakpointContent>

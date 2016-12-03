@@ -24,6 +24,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var score: Int = 0
     var highscore: Int = 0
+    var scoreLabel: SKLabelNode = SKLabelNode(fontNamed: "Arial")
     
     var hero: SKSpriteNode = SKSpriteNode()
     var block: SKSpriteNode = SKSpriteNode()
@@ -31,6 +32,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var blockTimer = Timer()
 
     override func didMove(to view: SKView) {
+        scoreLabel.text = "\(score)"
+        scoreLabel.position = CGPoint(x: self.size.width / 2, y: self.size.height)
         
         manager.startAccelerometerUpdates()
         manager.accelerometerUpdateInterval = 0.1
@@ -51,6 +54,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         hero.physicsBody?.categoryBitMask = CollisionNames.Hero
         hero.physicsBody?.contactTestBitMask = CollisionNames.Block
         hero.physicsBody?.collisionBitMask = CollisionNames.Block
+        self.addChild(scoreLabel)
         self.addChild(hero)
         
         let border  = SKPhysicsBody(edgeLoopFrom: self.frame)
@@ -90,6 +94,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         block.run(SKAction.sequence([action, actionDone]))
         
         self.addChild(block)
+        score += 1
         
     }
 
