@@ -33,6 +33,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var blockTimer = Timer()
     var scoreTimer = Timer()
     
+    var fadingAnimation = SKAction()
+    
     override func didMove(to view: SKView) {
         
         self.physicsWorld.contactDelegate = self
@@ -48,8 +50,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             tapToStart.text = "Tap to Start"
             tapToStart.fontSize = 65
             tapToStart.fontColor = UIColor.black
-            tapToStart.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.2)
+            tapToStart.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 3)
             tapToStart.zPosition = 2.0
+            fadingAnimation = SKAction.sequence([SKAction.fadeIn(withDuration: 1.0), SKAction.fadeOut(withDuration: 1.0)])
+            tapToStart.run(SKAction.repeatForever(fadingAnimation))
             self.addChild(tapToStart)
         
             scoreLabel.text = "\(score)"
@@ -74,7 +78,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             hero.physicsBody?.categoryBitMask = CollisionNames.Hero
             hero.physicsBody?.contactTestBitMask = CollisionNames.Block
             hero.physicsBody?.collisionBitMask = CollisionNames.Block
-            self.addChild(hero)
             
             let border  = SKPhysicsBody(edgeLoopFrom: self.frame)
             
@@ -124,12 +127,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if gameStarted == false {
+
             gameStarted = true
-            scoreLabel.isHidden = false
+            
             tapToStart.removeFromParent()
+            
+            self.addChild(hero)
+            
+            score = 0
+            scoreLabel.isHidden = false
+            scoreLabel.run(SKAction.sequence([SKAction.wait(forDuration: 0.5), SKAction.fadeIn(withDuration: 0.5)]))
+
+            scoreLabel.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.2)
+            scoreLabel.fontSize = 65
+            scoreLabel.text = "\(score)"
+            
             blockTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(GameScene.spawnBlocks), userInfo: nil, repeats: true)
             
             scoreTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(GameScene.increaseScore), userInfo: nil, repeats: true)
+            
+            
         }
         
         for touch in touches {
@@ -148,7 +165,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if bodyA.node?.physicsBody?.categoryBitMask == CollisionNames.Hero && bodyB.node?.physicsBody?.categoryBitMask == CollisionNames.Block || bodyA.node?.physicsBody?.categoryBitMask == CollisionNames.Block && bodyB.node?.physicsBody?.categoryBitMask == CollisionNames.Hero {
                 
                 gameStarted = false
-                score = 0
+                
+                hero.removeFromParent()
                 block.removeFromParent()
                 blockTimer.invalidate()
                 scoreTimer.invalidate()
@@ -158,6 +176,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 scoreLabel.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.7)
                 scoreLabel.run(SKAction.fadeIn(withDuration: 0.4))
                 scoreLabel.fontColor = UIColor.black
+                
+                tapToStart.text = "Play Again"
+                tapToStart.run(SKAction.fadeIn(withDuration: 1.0))
+                tapToStart.run(SKAction.repeatForever(fadingAnimation))
+                self.addChild(tapToStart)
             }
         }
     }
