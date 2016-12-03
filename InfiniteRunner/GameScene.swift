@@ -43,8 +43,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func didMove(to view: SKView) {
         
         self.physicsWorld.contactDelegate = self
-        let bgColor: UIColor = UIColor(red: 179, green: 218, blue: 255, alpha: 1)
-        backgroundColor = bgColor
+        backgroundColor = UIColor.white
         
         manager.startAccelerometerUpdates()
         manager.accelerometerUpdateInterval = 0.1
@@ -60,8 +59,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
         }
         
-        titleLabel.text = "THE GAME"
-        titleLabel.fontSize = 80
+        titleLabel.text = "Bricked"
+        titleLabel.fontSize = 90
         titleLabel.fontColor = UIColor.black
         titleLabel.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.3)
         titleLabel.zPosition = 2.0
@@ -118,7 +117,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if gameStarted == true {
             let blockTexture = SKTexture(imageNamed: "Block.png")
             block = SKSpriteNode(texture: blockTexture)
-            block.size = CGSize(width: 50, height: 50)
+            block.size = CGSize(width: 90, height: 50)
             let minValue = self.size.width / 8
             let maxValue = self.size.height - 20
             let spawnPoint = UInt32(maxValue - minValue)
