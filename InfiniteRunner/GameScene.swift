@@ -25,7 +25,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var score: Int = 0
     var highscore: Int = 0
     var scoreLabel: SKLabelNode = SKLabelNode(fontNamed: "Arial")
-    
     var tapToStart: SKLabelNode = SKLabelNode(fontNamed: "Arial")
     
     var hero: SKSpriteNode = SKSpriteNode()
@@ -124,12 +123,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        gameStarted = true
-        increaseScore()
-        if gameStarted == true {
+        if gameStarted == false {
+            gameStarted = true
             scoreLabel.isHidden = false
             tapToStart.removeFromParent()
-            blockTimer = Timer.scheduledTimer(timeInterval: 5.0, target: self, selector: #selector(GameScene.spawnBlocks), userInfo: nil, repeats: true)
+            blockTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(GameScene.spawnBlocks), userInfo: nil, repeats: true)
             
             scoreTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(GameScene.increaseScore), userInfo: nil, repeats: true)
         }
@@ -144,14 +142,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func didBegin(_ contact: SKPhysicsContact) {
         if gameStarted == true {
-            print("test")
+
             let bodyA = contact.bodyA
             let bodyB = contact.bodyB
             if bodyA.node?.physicsBody?.categoryBitMask == CollisionNames.Hero && bodyB.node?.physicsBody?.categoryBitMask == CollisionNames.Block || bodyA.node?.physicsBody?.categoryBitMask == CollisionNames.Block && bodyB.node?.physicsBody?.categoryBitMask == CollisionNames.Hero {
                 
                 gameStarted = false
-                hero.removeFromParent()
-                
+                score = 0
                 block.removeFromParent()
                 blockTimer.invalidate()
                 scoreTimer.invalidate()
