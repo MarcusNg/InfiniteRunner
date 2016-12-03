@@ -26,11 +26,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var highscore: Int = 0
     var scoreLabel: SKLabelNode = SKLabelNode(fontNamed: "Arial")
     
+    var tapToStart: SKLabelNode = SKLabelNode(fontNamed: "Arial")
+    
     var hero: SKSpriteNode = SKSpriteNode()
     var block: SKSpriteNode = SKSpriteNode()
     
     var blockTimer = Timer()
-
+    var scoreTimer = Timer()
+    
     override func didMove(to view: SKView) {
         
         self.physicsWorld.contactDelegate = self
@@ -40,78 +43,95 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         manager.startAccelerometerUpdates(to: OperationQueue.main) {(data,error) in
             self.physicsWorld.gravity = CGVector(dx: CGFloat((data?.acceleration.x)!) * 10, dy: CGFloat((data?.acceleration.y)!) * 10)
         }
-        scoreLabel.text = "\(score)"
-        scoreLabel.fontSize = 65
-        scoreLabel.fontColor = UIColor.black
-        scoreLabel.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.2)
-        scoreLabel.zPosition = 2.0
-        self.addChild(scoreLabel)
         
-        let heroTexture = SKTexture(imageNamed: "hero")
+        if gameStarted == false {
+            
+            tapToStart.text = "Tap to Start"
+            tapToStart.fontSize = 65
+            tapToStart.fontColor = UIColor.black
+            tapToStart.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.2)
+            tapToStart.zPosition = 2.0
+            self.addChild(tapToStart)
         
-        hero = SKSpriteNode(texture: heroTexture)
-        hero.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2 )
-        hero.name = "Hero"
-        backgroundColor = UIColor.white
-        hero.physicsBody = SKPhysicsBody(rectangleOf: hero.size)
-        hero.physicsBody?.affectedByGravity = true
+            scoreLabel.text = "\(score)"
+            scoreLabel.fontSize = 65
+            scoreLabel.fontColor = UIColor.black
+            scoreLabel.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.2)
+            scoreLabel.zPosition = 2.0
+            scoreLabel.isHidden = true
+            self.addChild(scoreLabel)
+            
+            let heroTexture = SKTexture(imageNamed: "hero")
+            
+            hero = SKSpriteNode(texture: heroTexture)
+            hero.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2 )
+            hero.name = "Hero"
+            backgroundColor = UIColor.white
+            hero.physicsBody = SKPhysicsBody(rectangleOf: hero.size)
+            hero.physicsBody?.affectedByGravity = true
+            
+            hero.physicsBody?.isDynamic = true
+            hero.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+            hero.physicsBody?.categoryBitMask = CollisionNames.Hero
+            hero.physicsBody?.contactTestBitMask = CollisionNames.Block
+            hero.physicsBody?.collisionBitMask = CollisionNames.Block
+            self.addChild(hero)
+            
+            let border  = SKPhysicsBody(edgeLoopFrom: self.frame)
+            
+            border.friction = 0
+            border.restitution = 1
+            
+            self.physicsBody = border
         
-        hero.physicsBody?.isDynamic = true
-        hero.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
-        hero.physicsBody?.categoryBitMask = CollisionNames.Hero
-        hero.physicsBody?.contactTestBitMask = CollisionNames.Block
-        hero.physicsBody?.collisionBitMask = CollisionNames.Block
-        self.addChild(hero)
-        
-        let border  = SKPhysicsBody(edgeLoopFrom: self.frame)
-        
-        border.friction = 0
-        border.restitution = 1
-        
-        self.physicsBody = border
-        
+        }
     }
     
     func spawnBlocks() {
         
-        let screenSize = UIScreen.main.bounds
-        let screenWidth = screenSize.width
-        let screenHeight = screenSize.height
+        if gameStarted == true {
+            let blockTexture = SKTexture(imageNamed: "Block.png")
+            block = SKSpriteNode(texture: blockTexture)
+            let minValue = self.size.width / 8
+            let maxValue = self.size.height - 20
+            let spawnPoint = UInt32(maxValue - minValue)
+            block.position = CGPoint(x: CGFloat(arc4random_uniform(spawnPoint)), y: self.size.height)
+            //block.position = CGPoint(x: self.size.width / 20, y: self.size.height / 2)
+            block.name = "Block"
+            
+            block.physicsBody = SKPhysicsBody(rectangleOf: block.size)
+            block.physicsBody?.allowsRotation = false
+            block.physicsBody?.isDynamic = true
+            block.physicsBody?.categoryBitMask = CollisionNames.Block
+            block.physicsBody?.contactTestBitMask = CollisionNames.Hero
+            block.physicsBody?.collisionBitMask = CollisionNames.Hero
+            block.physicsBody?.affectedByGravity = false
+            
+            let action = SKAction.moveTo(y: -1000, duration: 3 )
+            let actionDone = SKAction.removeFromParent()
+            block.run(SKAction.sequence([action, actionDone]))
+            
+            self.addChild(block)
+        }
         
-        let blockTexture = SKTexture(imageNamed: "Block.png")
-        block = SKSpriteNode(texture: blockTexture)
-        let minValue = self.size.width / 8
-        let maxValue = self.size.height - 20
-        let spawnPoint = UInt32(maxValue - minValue)
-        block.position = CGPoint(x: CGFloat(arc4random_uniform(spawnPoint)), y: self.size.height)
-        //block.position = CGPoint(x: self.size.width / 20, y: self.size.height / 2)
-        block.name = "Block"
-        
-        block.physicsBody = SKPhysicsBody(rectangleOf: block.size)
-        block.physicsBody?.allowsRotation = false
-        block.physicsBody?.isDynamic = true
-        block.physicsBody?.categoryBitMask = CollisionNames.Block
-        block.physicsBody?.contactTestBitMask = CollisionNames.Hero
-        block.physicsBody?.collisionBitMask = CollisionNames.Hero
-        block.physicsBody?.affectedByGravity = false
-        
-        let action = SKAction.moveTo(y: -1000, duration: 3 )
-        let actionDone = SKAction.removeFromParent()
-        let incrementScore = SKAction.run ({
-            self.score += 1
-            self.scoreLabel.text = "\(self.score)"
-        })
-        
-        block.run(SKAction.sequence([action, actionDone, incrementScore]))
-        
-        self.addChild(block)
-        
+    }
+    
+    func increaseScore() {
+        if gameStarted == true {
+            score += 1
+            scoreLabel.text = "\(score)"
+        }
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         gameStarted = true
+        increaseScore()
         if gameStarted == true {
-            blockTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(GameScene.spawnBlocks), userInfo: nil, repeats: true)
+            scoreLabel.isHidden = false
+            tapToStart.removeFromParent()
+            blockTimer = Timer.scheduledTimer(timeInterval: 5.0, target: self, selector: #selector(GameScene.spawnBlocks), userInfo: nil, repeats: true)
+            
+            scoreTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(GameScene.increaseScore), userInfo: nil, repeats: true)
         }
         
         for touch in touches {
@@ -134,7 +154,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 
                 block.removeFromParent()
                 blockTimer.invalidate()
-
+                scoreTimer.invalidate()
                 // Add highscore labels and retry button
                 scoreLabel.text = "Time Survived : \(score)"
                 scoreLabel.fontSize = 45
