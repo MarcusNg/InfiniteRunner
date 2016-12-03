@@ -32,6 +32,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var blockTimer = Timer()
 
     override func didMove(to view: SKView) {
+        self.physicsWorld.contactDelegate = self
+        
         scoreLabel.text = "\(score)"
         scoreLabel.position = CGPoint(x: self.size.width / 2, y: self.size.height)
         
@@ -100,11 +102,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
 
+        gameStarted = true
         blockTimer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(GameScene.spawnBlocks), userInfo: nil, repeats: true)
         
         for touch in touches {
             let location = touch.location(in: self)
             hero.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 70))
+        }
+        
+    }
+    
+    func didBegin(_ contact: SKPhysicsContact) {
+        if gameStarted == true {
+            print("test")
+            let bodyA = contact.bodyA
+            let bodyB = contact.bodyB
+            if bodyA.node?.physicsBody?.categoryBitMask == CollisionNames.Hero && bodyB.node?.physicsBody?.categoryBitMask == CollisionNames.Block {
+                print("CONTACT")
+            } else if bodyA.node?.physicsBody?.categoryBitMask == CollisionNames.Block && bodyB.node?.physicsBody?.categoryBitMask == CollisionNames.Hero {
+                print("CONTACT")
+            }
         }
     }
     
