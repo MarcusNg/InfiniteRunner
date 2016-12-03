@@ -28,6 +28,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var hero: SKSpriteNode = SKSpriteNode()
     var block: SKSpriteNode = SKSpriteNode()
     
+    var blockTimer = Timer()
+
     override func didMove(to view: SKView) {
         
         manager.startAccelerometerUpdates()
@@ -60,15 +62,45 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
     }
     
+    func spawnBlocks() {
+        
+        let screenSize = UIScreen.main.bounds
+        let screenWidth = screenSize.width
+        let screenHeight = screenSize.height
+        
+        let blockTexture = SKTexture(imageNamed: "Block.png")
+        block = SKSpriteNode(texture: blockTexture)
+        let minValue = screenWidth / 8
+        let maxValue = screenWidth - 20
+        let spawnPoint = UInt32(maxValue - minValue)
+        block.position = CGPoint(x: CGFloat(arc4random_uniform(spawnPoint)), y: self.size.height)
+        //block.position = CGPoint(x: self.size.width / 20, y: self.size.height / 2)
+        block.name = "Block"
+        
+        block.physicsBody = SKPhysicsBody(rectangleOf: block.size)
+        block.physicsBody?.allowsRotation = false
+        block.physicsBody?.isDynamic = true
+        block.physicsBody?.categoryBitMask = CollisionNames.Block
+        block.physicsBody?.contactTestBitMask = CollisionNames.Hero
+        block.physicsBody?.collisionBitMask = CollisionNames.Hero
+        block.physicsBody?.affectedByGravity = false
+        
+        let action = SKAction.moveTo(y: -70, duration: 1.45 )
+        let actionDone = SKAction.removeFromParent()
+        block.run(SKAction.sequence([action, actionDone]))
+        
+        self.addChild(block)
+        
+    }
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
 
+        blockTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(GameScene.spawnBlocks), userInfo: nil, repeats: true)
+        
         for touch in touches {
             let location = touch.location(in: self)
             hero.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 70))
-            
         }
-        
-        
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
