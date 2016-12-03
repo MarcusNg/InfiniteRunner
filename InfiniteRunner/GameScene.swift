@@ -19,12 +19,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     let manager = CMMotionManager()
     
+    var spd: CGFloat = 1.0
+    
     var gameStarted: Bool = false
     var isAlive: Bool = false
     
     var score: Int = 0
     var highscore: Int = 0
+    
     var scoreLabel: SKLabelNode = SKLabelNode(fontNamed: "Arial")
+    var highscoreLabel: SKLabelNode = SKLabelNode(fontNamed: "Arial")
+    var titleLabel: SKLabelNode = SKLabelNode(fontNamed: "Arial")
     var tapToStart: SKLabelNode = SKLabelNode(fontNamed: "Arial")
     
     var hero: SKSpriteNode = SKSpriteNode()
@@ -38,6 +43,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func didMove(to view: SKView) {
         
         self.physicsWorld.contactDelegate = self
+        let bgColor: UIColor = UIColor(red: 179, green: 218, blue: 255, alpha: 1)
+        backgroundColor = bgColor
         
         manager.startAccelerometerUpdates()
         manager.accelerometerUpdateInterval = 0.1
@@ -45,50 +52,67 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.physicsWorld.gravity = CGVector(dx: CGFloat((data?.acceleration.x)!) * 10, dy: CGFloat((data?.acceleration.y)!) * 10)
         }
         
-        if gameStarted == false {
+        let highscoreDefault = UserDefaults.standard
+        if highscoreDefault.value(forKey: "Highscore") != nil {
             
-            tapToStart.text = "Tap to Start"
-            tapToStart.fontSize = 65
-            tapToStart.fontColor = UIColor.black
-            tapToStart.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 3)
-            tapToStart.zPosition = 2.0
-            fadingAnimation = SKAction.sequence([SKAction.fadeIn(withDuration: 1.0), SKAction.fadeOut(withDuration: 1.0)])
-            tapToStart.run(SKAction.repeatForever(fadingAnimation))
-            self.addChild(tapToStart)
-        
-            scoreLabel.text = "\(score)"
-            scoreLabel.fontSize = 65
-            scoreLabel.fontColor = UIColor.black
-            scoreLabel.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.2)
-            scoreLabel.zPosition = 2.0
-            scoreLabel.isHidden = true
-            self.addChild(scoreLabel)
+            highscore = highscoreDefault.value(forKey: "Highscore") as! Int
+            highscoreLabel.text = "Highscore : \(highscore)"
             
-            let heroTexture = SKTexture(imageNamed: "hero")
-            
-            hero = SKSpriteNode(texture: heroTexture)
-            hero.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2 )
-            hero.name = "Hero"
-            backgroundColor = UIColor.white
-            hero.physicsBody = SKPhysicsBody(rectangleOf: hero.size)
-            hero.physicsBody?.affectedByGravity = true
-            
-            hero.physicsBody?.isDynamic = true
-            hero.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
-            hero.physicsBody?.categoryBitMask = CollisionNames.Hero
-            hero.physicsBody?.contactTestBitMask = CollisionNames.Block
-            hero.physicsBody?.collisionBitMask = CollisionNames.Block
-            
-            let border  = SKPhysicsBody(edgeLoopFrom: self.frame)
-            
-            border.friction = 0
-            border.restitution = 1
-            
-            self.physicsBody = border
-        
         }
+        
+        titleLabel.text = "THE GAME"
+        titleLabel.fontSize = 80
+        titleLabel.fontColor = UIColor.black
+        titleLabel.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.3)
+        titleLabel.zPosition = 2.0
+        self.addChild(titleLabel)
+        
+        tapToStart.text = "Tap to Start"
+        tapToStart.fontSize = 65
+        tapToStart.fontColor = UIColor.black
+        tapToStart.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 3)
+        tapToStart.zPosition = 2.0
+        fadingAnimation = SKAction.sequence([SKAction.fadeIn(withDuration: 1.0), SKAction.fadeOut(withDuration: 1.0)])
+        tapToStart.run(SKAction.repeatForever(fadingAnimation))
+        self.addChild(tapToStart)
+        
+        highscoreLabel.text = "Highscore : \(highscore)"
+        highscoreLabel.fontSize = 47
+        highscoreLabel.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 2)
+        highscoreLabel.fontColor = UIColor.black
+        self.addChild(highscoreLabel)
+        
+        scoreLabel.text = "\(score)"
+        scoreLabel.fontSize = 65
+        scoreLabel.fontColor = UIColor.black
+        scoreLabel.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.2)
+        scoreLabel.zPosition = 2.0
+        scoreLabel.isHidden = true
+        self.addChild(scoreLabel)
+        
+        let heroTexture = SKTexture(imageNamed: "hero")
+        
+        hero = SKSpriteNode(texture: heroTexture)
+        hero.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2 )
+        hero.name = "Hero"
+        hero.physicsBody = SKPhysicsBody(rectangleOf: hero.size)
+        hero.physicsBody?.affectedByGravity = true
+        
+        hero.physicsBody?.isDynamic = true
+        hero.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+        hero.physicsBody?.categoryBitMask = CollisionNames.Hero
+        hero.physicsBody?.contactTestBitMask = CollisionNames.Block
+        hero.physicsBody?.collisionBitMask = CollisionNames.Block
+        
+        let border  = SKPhysicsBody(edgeLoopFrom: self.frame)
+        
+        border.friction = 0
+        border.restitution = 1
+        
+        self.physicsBody = border
+        
     }
-    
+
     func spawnBlocks() {
         
         if gameStarted == true {
@@ -98,7 +122,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let maxValue = self.size.height - 20
             let spawnPoint = UInt32(maxValue - minValue)
             block.position = CGPoint(x: CGFloat(arc4random_uniform(spawnPoint)), y: self.size.height)
-            //block.position = CGPoint(x: self.size.width / 20, y: self.size.height / 2)
             block.name = "Block"
             
             block.physicsBody = SKPhysicsBody(rectangleOf: block.size)
@@ -130,9 +153,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
             gameStarted = true
             
-            tapToStart.removeFromParent()
-            
             self.addChild(hero)
+            
+            tapToStart.removeFromParent()
+            highscoreLabel.removeFromParent()
+            titleLabel.removeFromParent()
             
             score = 0
             scoreLabel.isHidden = false
@@ -142,15 +167,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             scoreLabel.fontSize = 65
             scoreLabel.text = "\(score)"
             
-            blockTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(GameScene.spawnBlocks), userInfo: nil, repeats: true)
+            blockTimer = Timer.scheduledTimer(timeInterval: TimeInterval(spd), target: self, selector: #selector(GameScene.spawnBlocks), userInfo: nil, repeats: true)
             
             scoreTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(GameScene.increaseScore), userInfo: nil, repeats: true)
-            
             
         }
         
         for touch in touches {
-            let location = touch.location(in: self)
             hero.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 70))
         }
         
@@ -165,12 +188,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if bodyA.node?.physicsBody?.categoryBitMask == CollisionNames.Hero && bodyB.node?.physicsBody?.categoryBitMask == CollisionNames.Block || bodyA.node?.physicsBody?.categoryBitMask == CollisionNames.Block && bodyB.node?.physicsBody?.categoryBitMask == CollisionNames.Hero {
                 
                 gameStarted = false
-                
+                spd = 1.0
                 hero.removeFromParent()
                 block.removeFromParent()
                 blockTimer.invalidate()
                 scoreTimer.invalidate()
-                // Add highscore labels and retry button
+                
                 scoreLabel.text = "Time Survived : \(score)"
                 scoreLabel.fontSize = 45
                 scoreLabel.position = CGPoint(x: scene!.frame.width / 2, y: scene!.frame.height / 1.7)
@@ -181,6 +204,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 tapToStart.run(SKAction.fadeIn(withDuration: 1.0))
                 tapToStart.run(SKAction.repeatForever(fadingAnimation))
                 self.addChild(tapToStart)
+                self.addChild(titleLabel)
+                self.addChild(highscoreLabel)
+            
+                if score > highscore {
+                    let highscoreDefault = UserDefaults.standard
+                    highscore = score
+                    highscoreDefault.set(highscore, forKey: "Highscore")
+                    highscoreLabel.text = "Highscore : \(highscore)"
+                }
+                
             }
         }
     }
@@ -200,5 +233,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
+        if score % 10 == 0 && spd > 0.5 {
+            spd -= 0.2
+        }
+    }
+    
+}
+
+extension UIColor {
+    convenience init(colorWithHexValue value: Int, alpha:CGFloat = 1.0){
+        self.init(
+            red: CGFloat((value & 0xFF0000) >> 16) / 255.0,
+            green: CGFloat((value & 0x00FF00) >> 8) / 255.0,
+            blue: CGFloat(value & 0x0000FF) / 255.0,
+            alpha: alpha
+        )
     }
 }
+
